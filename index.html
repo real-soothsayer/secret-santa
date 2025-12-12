@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Santa</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #c41e3a;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .emoji-header {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #1a472a;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-add {
+            background: #1a472a;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #2d5a3d;
+        }
+
+        .btn-draw {
+            background: #c41e3a;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .btn-draw:hover {
+            background: #a01830;
+        }
+
+        .btn-draw:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: #666;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .btn-reset:hover {
+            background: #555;
+        }
+
+        .btn-remove {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-remove:hover {
+            background: #ee5a5a;
+        }
+
+        .btn-reveal {
+            background: #1a472a;
+            color: white;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        .btn-reveal:hover {
+            background: #2d5a3d;
+        }
+
+        .participants-section {
+            margin: 20px 0;
+        }
+
+        .participants-section h2 {
+            color: #1a472a;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .participants-list {
+            list-style: none;
+        }
+
+        .participants-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #1a472a;
+        }
+
+        .participant-name {
+            font-weight: 500;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #ddd;
+        }
+
+        .results-section h2 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .results-list {
+            list-style: none;
+        }
+
+        .results-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 2px solid #1a472a;
+        }
+
+        .assignment {
+            font-size: 1.1rem;
+        }
+
+        .assignment .giver {
+            font-weight: bold;
+            color: #1a472a;
+        }
+
+        .assignment .arrow {
+            color: #c41e3a;
+            margin: 0 10px;
+        }
+
+        .assignment .receiver {
+            font-weight: bold;
+            color: #c41e3a;
+        }
+
+        .hidden-receiver {
+            background: #333;
+            color: #333;
+            padding: 2px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .hidden-receiver.revealed {
+            background: transparent;
+            color: #c41e3a;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: #c41e3a;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .min-participants-note {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji-header">🎅🎄🎁</div>
+        <h1>Secret Santa</h1>
+        <p class="subtitle">Organisez votre tirage au sort de Noël</p>
+
+        <div id="error-container"></div>
+
+        <div class="input-section">
+            <input type="text" id="participant-input" placeholder="Entrez un nom de participant" maxlength="50">
+            <button class="btn-add" onclick="addParticipant()">Ajouter</button>
+        </div>
+
+        <div class="participants-section">
+            <h2>Participants (<span id="participant-count">0</span>)</h2>
+            <ul class="participants-list" id="participants-list"></ul>
+            <p class="min-participants-note">Minimum 3 participants requis pour le tirage</p>
+        </div>
+
+        <button class="btn-draw" id="draw-btn" onclick="performDraw()" disabled>
+            🎲 Effectuer le tirage au sort
+        </button>
+
+        <div class="results-section" id="results-section" style="display: none;">
+            <h2>🎁 Résultats du tirage</h2>
+            <ul class="results-list" id="results-list"></ul>
+            <button class="btn-reset" onclick="resetAll()">🔄 Recommencer</button>
+        </div>
+    </div>
+
+    <script>
+        let participants = [];
+
+        const participantInput = document.getElementById('participant-input');
+        const participantsList = document.getElementById('participants-list');
+        const participantCount = document.getElementById('participant-count');
+        const drawBtn = document.getElementById('draw-btn');
+        const resultsSection = document.getElementById('results-section');
+        const resultsList = document.getElementById('results-list');
+        const errorContainer = document.getElementById('error-container');
+
+        // Add participant on Enter key
+        participantInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addParticipant();
+            }
+        });
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error-message">${escapeHtml(message)}</div>`;
+            setTimeout(() => {
+                errorContainer.innerHTML = '';
+            }, 3000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function addParticipant() {
+            const name = participantInput.value.trim();
+
+            if (!name) {
+                showError('Veuillez entrer un nom');
+                return;
+            }
+
+            if (participants.some(p => p.toLowerCase() === name.toLowerCase())) {
+                showError('Ce participant existe déjà');
+                return;
+            }
+
+            if (name.length > 50) {
+                showError('Le nom est trop long (max 50 caractères)');
+                return;
+            }
+
+            participants.push(name);
+            participantInput.value = '';
+            participantInput.focus();
+            updateParticipantsList();
+        }
+
+        function removeParticipant(index) {
+            participants.splice(index, 1);
+            updateParticipantsList();
+        }
+
+        function updateParticipantsList() {
+            participantsList.innerHTML = '';
+            participants.forEach((name, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="participant-name">${escapeHtml(name)}</span>
+                    <button class="btn-remove" onclick="removeParticipant(${index})">Supprimer</button>
+                `;
+                participantsList.appendChild(li);
+            });
+
+            participantCount.textContent = participants.length;
+            drawBtn.disabled = participants.length < 3;
+
+            // Hide results if participants change
+            resultsSection.style.display = 'none';
+        }
+
+        function performDraw() {
+            if (participants.length < 3) {
+                showError('Il faut au moins 3 participants');
+                return;
+            }
+
+            // Create assignments using a derangement (no one gets themselves)
+            let assignments;
+            let attempts = 0;
+            const maxAttempts = 100;
+
+            do {
+                assignments = createDerangement(participants);
+                attempts++;
+            } while (!isValidDerangement(participants, assignments) && attempts < maxAttempts);
+
+            if (!isValidDerangement(participants, assignments)) {
+                showError('Erreur lors du tirage, veuillez réessayer');
+                return;
+            }
+
+            displayResults(participants, assignments);
+        }
+
+        function createDerangement(arr) {
+            const n = arr.length;
+            const result = [...arr];
+            
+            // Fisher-Yates shuffle that ensures derangement
+            for (let i = n - 1; i > 0; i--) {
+                // Pick a random index from 0 to i-1 (excluding i to avoid fixed points when possible)
+                let j;
+                if (i === 1 && result[1] === arr[1]) {
+                    j = 0; // Force swap if we're at the last position and would create a fixed point
+                } else {
+                    j = Math.floor(Math.random() * i);
+                }
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+            
+            // Final check and fix for first element
+            if (result[0] === arr[0]) {
+                // Swap with a random other position
+                const swapIdx = 1 + Math.floor(Math.random() * (n - 1));
+                [result[0], result[swapIdx]] = [result[swapIdx], result[0]];
+            }
+            
+            return result;
+        }
+
+        function isValidDerangement(original, shuffled) {
+            if (original.length !== shuffled.length) return false;
+            for (let i = 0; i < original.length; i++) {
+                if (original[i] === shuffled[i]) return false;
+            }
+            return true;
+        }
+
+        function displayResults(givers, receivers) {
+            resultsList.innerHTML = '';
+            
+            for (let i = 0; i < givers.length; i++) {
+                const li = document.createElement('li');
+                const receiverId = `receiver-${i}`;
+                
+                const assignmentSpan = document.createElement('span');
+                assignmentSpan.className = 'assignment';
+                
+                const giverSpan = document.createElement('span');
+                giverSpan.className = 'giver';
+                giverSpan.textContent = givers[i];
+                
+                const arrowSpan = document.createElement('span');
+                arrowSpan.className = 'arrow';
+                arrowSpan.textContent = '➜';
+                
+                const hiddenReceiverSpan = document.createElement('span');
+                hiddenReceiverSpan.className = 'hidden-receiver';
+                hiddenReceiverSpan.id = receiverId;
+                hiddenReceiverSpan.dataset.receiver = receivers[i];
+                hiddenReceiverSpan.textContent = '[Cliquez pour révéler]';
+                hiddenReceiverSpan.addEventListener('click', function() {
+                    revealReceiver(this);
+                });
+                
+                assignmentSpan.appendChild(giverSpan);
+                assignmentSpan.appendChild(arrowSpan);
+                assignmentSpan.appendChild(hiddenReceiverSpan);
+                
+                const revealBtn = document.createElement('button');
+                revealBtn.className = 'btn-reveal';
+                revealBtn.textContent = '👁️ Révéler';
+                revealBtn.dataset.targetId = receiverId;
+                revealBtn.addEventListener('click', function() {
+                    revealReceiver(document.getElementById(this.dataset.targetId));
+                });
+                
+                li.appendChild(assignmentSpan);
+                li.appendChild(revealBtn);
+                resultsList.appendChild(li);
+            }
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function revealReceiver(element) {
+            if (element && !element.classList.contains('revealed')) {
+                element.textContent = element.dataset.receiver;
+                element.classList.add('revealed');
+            }
+        }
+
+        function resetAll() {
+            participants = [];
+            updateParticipantsList();
+            resultsSection.style.display = 'none';
+            participantInput.focus();
+        }
+    </script>
+</body>
+</html>
