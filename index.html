@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Santa</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #1a472a 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #c41e3a;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            color: #1a472a;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .emoji-header {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #1a472a;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #c41e3a;
+            color: white;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background: #a01830;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #1a472a;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d5a3d;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #1a472a;
+            color: #1a472a;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-outline:hover {
+            background: #1a472a;
+            color: white;
+        }
+
+        .btn-copy {
+            background: #1a472a;
+            color: white;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        .btn-copy:hover {
+            background: #2d5a3d;
+        }
+
+        .btn-copy.copied {
+            background: #28a745;
+        }
+
+        .btn-remove {
+            background: #ff6b6b;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-remove:hover {
+            background: #ee5a5a;
+        }
+
+        .event-code-display {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #1a472a;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .event-code-display .label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .event-code-display .code {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1a472a;
+            letter-spacing: 5px;
+            font-family: monospace;
+        }
+
+        .event-code-display .event-name {
+            font-size: 1.2rem;
+            color: #c41e3a;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .participants-section {
+            margin: 20px 0;
+        }
+
+        .participants-list {
+            list-style: none;
+        }
+
+        .participants-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid #1a472a;
+        }
+
+        .participants-list li.current-user {
+            border-left-color: #c41e3a;
+            background: #fff5f5;
+        }
+
+        .participant-name {
+            font-weight: 500;
+        }
+
+        .participant-status {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .status-joined {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-organizer {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .error-message {
+            background: #ffe6e6;
+            color: #c41e3a;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-message {
+            background: #e7f3ff;
+            color: #0056b3;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .assignment-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 3px solid #c41e3a;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .assignment-box .label {
+            color: #666;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .assignment-box .receiver-name {
+            color: #c41e3a;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .assignment-box .hidden {
+            background: #333;
+            color: #333;
+            padding: 10px 30px;
+            border-radius: 8px;
+            display: inline-block;
+            cursor: pointer;
+            user-select: none;
+            font-size: 1.5rem;
+        }
+
+        .waiting-message {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+
+        .waiting-message .spinner {
+            font-size: 2rem;
+            animation: spin 2s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .share-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .share-section .share-link {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .share-section input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #1a472a;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .event-code-display .code {
+                font-size: 2rem;
+            }
+
+            .share-section .share-link {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="waiting-message">
+            <div class="spinner">🎄</div>
+            <p>Chargement...</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="emoji-header">🎅🎄🎁</div>
+        <h1>Secret Santa</h1>
+        
+        <div id="message-container"></div>
+
+        <!-- Home View -->
+        <div id="home-view" class="view active">
+            <p class="subtitle">Organisez votre tirage au sort de Noël</p>
+
+            <button class="btn-primary" id="create-event-btn">
+                ✨ Créer un événement
+            </button>
+
+            <div class="divider"><span>ou</span></div>
+
+            <div class="input-section">
+                <input type="text" id="join-code-input" placeholder="Code de l'événement" maxlength="6" style="text-transform: uppercase; text-align: center; letter-spacing: 3px; font-size: 1.2rem;">
+            </div>
+            <button class="btn-outline" id="join-event-btn">
+                🎟️ Rejoindre un événement
+            </button>
+        </div>
+
+        <!-- Create Event View -->
+        <div id="create-view" class="view">
+            <p class="subtitle">Créer un nouvel événement</p>
+
+            <div class="input-section">
+                <input type="text" id="event-name-input" placeholder="Nom de l'événement (ex: Noël 2024)" maxlength="50">
+            </div>
+
+            <div class="input-section">
+                <input type="text" id="organizer-name-input" placeholder="Votre nom" maxlength="50">
+            </div>
+
+            <button class="btn-primary" id="confirm-create-btn">
+                🎉 Créer l'événement
+            </button>
+
+            <a class="back-link" id="back-to-home">← Retour</a>
+        </div>
+
+        <!-- Join Event View -->
+        <div id="join-view" class="view">
+            <p class="subtitle">Rejoindre l'événement</p>
+
+            <div class="event-code-display">
+                <p class="label">Événement</p>
+                <p class="event-name" id="join-event-name"></p>
+                <p class="code" id="join-event-code"></p>
+            </div>
+
+            <div class="input-section">
+                <input type="text" id="participant-name-input" placeholder="Votre nom" maxlength="50">
+            </div>
+
+            <button class="btn-primary" id="confirm-join-btn">
+                🎄 Participer
+            </button>
+
+            <a class="back-link" id="back-from-join">← Retour</a>
+        </div>
+
+        <!-- Organizer Dashboard View -->
+        <div id="organizer-view" class="view">
+            <p class="subtitle">Tableau de bord organisateur</p>
+
+            <div class="event-code-display">
+                <p class="label">Code de l'événement</p>
+                <p class="code" id="display-event-code"></p>
+                <p class="event-name" id="display-event-name"></p>
+            </div>
+
+            <div class="share-section">
+                <p><strong>🔗 Partagez ce lien :</strong></p>
+                <div class="share-link">
+                    <input type="text" id="share-link-input" readonly>
+                    <button class="btn-copy" id="copy-link-btn">📋 Copier</button>
+                </div>
+            </div>
+
+            <div class="participants-section">
+                <h2>Participants (<span id="organizer-participant-count">0</span>)</h2>
+                <ul class="participants-list" id="organizer-participants-list"></ul>
+                <p style="color: #666; font-size: 0.9rem; text-align: center; margin-top: 10px;">
+                    Minimum 3 participants requis pour le tirage
+                </p>
+            </div>
+
+            <button class="btn-primary" id="perform-draw-btn" disabled>
+                🎲 Effectuer le tirage au sort
+            </button>
+
+            <a class="back-link" id="leave-organizer">← Quitter l'événement</a>
+        </div>
+
+        <!-- Participant Waiting View -->
+        <div id="participant-waiting-view" class="view">
+            <p class="subtitle" id="waiting-event-name"></p>
+
+            <div class="waiting-message">
+                <div class="spinner">⏳</div>
+                <p>En attente du tirage au sort...</p>
+                <p style="font-size: 0.9rem; margin-top: 10px;">L'organisateur effectuera le tirage quand tout le monde aura rejoint.</p>
+            </div>
+
+            <div class="participants-section">
+                <h2>Participants (<span id="waiting-participant-count">0</span>)</h2>
+                <ul class="participants-list" id="waiting-participants-list"></ul>
+            </div>
+
+            <a class="back-link" id="leave-waiting">← Quitter l'événement</a>
+        </div>
+
+        <!-- Assignment View -->
+        <div id="assignment-view" class="view">
+            <p class="subtitle" id="assignment-event-name"></p>
+
+            <div style="text-align: center; margin-bottom: 20px;">
+                <p style="font-size: 1.2rem;">Bonjour <strong id="assignment-participant-name"></strong> ! 👋</p>
+            </div>
+
+            <div class="assignment-box">
+                <p class="label">Tu dois offrir un cadeau à :</p>
+                <div id="assignment-display">
+                    <span class="hidden" id="hidden-assignment">🎁 Cliquez pour révéler 🎁</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="reveal-assignment-btn">
+                👁️ Révéler mon attribution
+            </button>
+
+            <a class="back-link" id="back-from-assignment">← Retour à l'accueil</a>
+        </div>
+
+        <!-- Draw Complete View (for organizer) -->
+        <div id="draw-complete-view" class="view">
+            <p class="subtitle" id="complete-event-name"></p>
+
+            <div class="success-message" style="margin: 20px 0;">
+                🎉 Le tirage au sort est terminé !
+            </div>
+
+            <div class="assignment-box">
+                <p class="label">Votre attribution :</p>
+                <div id="organizer-assignment-display">
+                    <span class="hidden" id="organizer-hidden-assignment">🎁 Cliquez pour révéler 🎁</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="organizer-reveal-btn">
+                👁️ Révéler mon attribution
+            </button>
+
+            <div class="participants-section" style="margin-top: 30px;">
+                <h2>Tous les participants</h2>
+                <ul class="participants-list" id="complete-participants-list"></ul>
+            </div>
+
+            <a class="back-link" id="back-from-complete">← Retour à l'accueil</a>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Firebase imports
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, onSnapshot, arrayUnion } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration - REPLACE WITH YOUR OWN CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyDemo-REPLACE-WITH-YOUR-KEY",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        let app, db;
+        let currentEvent = null;
+        let currentParticipant = null;
+        let unsubscribe = null;
+
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error('Firebase initialization error:', e);
+        }
+
+        // DOM Elements
+        const views = {
+            home: document.getElementById('home-view'),
+            create: document.getElementById('create-view'),
+            join: document.getElementById('join-view'),
+            organizer: document.getElementById('organizer-view'),
+            participantWaiting: document.getElementById('participant-waiting-view'),
+            assignment: document.getElementById('assignment-view'),
+            drawComplete: document.getElementById('draw-complete-view')
+        };
+
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const messageContainer = document.getElementById('message-container');
+
+        // Utility functions
+        function showView(viewName) {
+            Object.values(views).forEach(v => v.classList.remove('active'));
+            if (views[viewName]) {
+                views[viewName].classList.add('active');
+            }
+        }
+
+        function showLoading() {
+            loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        function showMessage(message, type = 'error') {
+            const className = type === 'success' ? 'success-message' : 
+                             type === 'info' ? 'info-message' : 'error-message';
+            messageContainer.innerHTML = `<div class="${className}">${escapeHtml(message)}</div>`;
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 4000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function generateEventCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            const randomValues = new Uint32Array(6);
+            crypto.getRandomValues(randomValues);
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(randomValues[i] % chars.length);
+            }
+            return code;
+        }
+
+        function generateParticipantId() {
+            // Use crypto.randomUUID if available, fallback to crypto.getRandomValues
+            if (crypto.randomUUID) {
+                return 'p_' + crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+            }
+            const randomValues = new Uint8Array(12);
+            crypto.getRandomValues(randomValues);
+            return 'p_' + Array.from(randomValues).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+        }
+
+        function getShareLink(eventCode) {
+            return `${window.location.origin}${window.location.pathname}?event=${eventCode}`;
+        }
+
+        // Derangement algorithm
+        function createDerangement(arr) {
+            const n = arr.length;
+            const result = [...arr];
+            
+            for (let i = n - 1; i > 0; i--) {
+                let j;
+                if (i === 1 && result[1] === arr[1]) {
+                    j = 0;
+                } else {
+                    j = Math.floor(Math.random() * i);
+                }
+                [result[i], result[j]] = [result[j], result[i]];
+            }
+            
+            if (result[0] === arr[0]) {
+                const swapIdx = 1 + Math.floor(Math.random() * (n - 1));
+                [result[0], result[swapIdx]] = [result[swapIdx], result[0]];
+            }
+            
+            return result;
+        }
+
+        function isValidDerangement(original, shuffled) {
+            if (original.length !== shuffled.length) return false;
+            for (let i = 0; i < original.length; i++) {
+                if (original[i] === shuffled[i]) return false;
+            }
+            return true;
+        }
+
+        // Event handlers
+        async function createEvent() {
+            const eventName = document.getElementById('event-name-input').value.trim();
+            const organizerName = document.getElementById('organizer-name-input').value.trim();
+
+            if (!eventName) {
+                showMessage('Veuillez entrer un nom pour l\'événement');
+                return;
+            }
+
+            if (!organizerName) {
+                showMessage('Veuillez entrer votre nom');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const eventCode = generateEventCode();
+                const participantId = generateParticipantId();
+                
+                const eventData = {
+                    name: eventName,
+                    code: eventCode,
+                    organizerId: participantId,
+                    organizerName: organizerName,
+                    participants: [{
+                        id: participantId,
+                        name: organizerName,
+                        isOrganizer: true
+                    }],
+                    assignments: {},
+                    drawCompleted: false,
+                    createdAt: new Date().toISOString()
+                };
+
+                await setDoc(doc(db, 'events', eventCode), eventData);
+
+                // Save to localStorage
+                localStorage.setItem('secretSantaParticipantId', participantId);
+                localStorage.setItem('secretSantaEventCode', eventCode);
+
+                currentEvent = eventData;
+                currentParticipant = { id: participantId, name: organizerName, isOrganizer: true };
+
+                showOrganizerDashboard(eventCode);
+            } catch (e) {
+                console.error('Error creating event:', e);
+                showMessage('Erreur lors de la création de l\'événement. Vérifiez votre configuration Firebase.');
+            }
+
+            hideLoading();
+        }
+
+        async function joinEvent(eventCode) {
+            if (!eventCode) {
+                eventCode = document.getElementById('join-code-input').value.trim().toUpperCase();
+            }
+
+            if (!eventCode || eventCode.length !== 6) {
+                showMessage('Veuillez entrer un code d\'événement valide (6 caractères)');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const eventDoc = await getDoc(doc(db, 'events', eventCode));
+                
+                if (!eventDoc.exists()) {
+                    showMessage('Événement introuvable. Vérifiez le code.');
+                    hideLoading();
+                    return;
+                }
+
+                const eventData = eventDoc.data();
+                currentEvent = eventData;
+
+                // Check if already a participant
+                const savedParticipantId = localStorage.getItem('secretSantaParticipantId');
+                const existingParticipant = eventData.participants.find(p => p.id === savedParticipantId);
+
+                if (existingParticipant) {
+                    currentParticipant = existingParticipant;
+                    localStorage.setItem('secretSantaEventCode', eventCode);
+
+                    if (existingParticipant.isOrganizer) {
+                        showOrganizerDashboard(eventCode);
+                    } else if (eventData.drawCompleted) {
+                        showAssignmentView(eventCode);
+                    } else {
+                        showParticipantWaitingView(eventCode);
+                    }
+                } else {
+                    // Show join form
+                    document.getElementById('join-event-name').textContent = eventData.name;
+                    document.getElementById('join-event-code').textContent = eventCode;
+                    showView('join');
+                }
+            } catch (e) {
+                console.error('Error joining event:', e);
+                showMessage('Erreur lors de la connexion à l\'événement');
+            }
+
+            hideLoading();
+        }
+
+        async function confirmJoin() {
+            const participantName = document.getElementById('participant-name-input').value.trim();
+            const eventCode = document.getElementById('join-event-code').textContent;
+
+            if (!participantName) {
+                showMessage('Veuillez entrer votre nom');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const eventDoc = await getDoc(doc(db, 'events', eventCode));
+                const eventData = eventDoc.data();
+
+                // Check if name already exists
+                if (eventData.participants.some(p => p.name.toLowerCase() === participantName.toLowerCase())) {
+                    showMessage('Ce nom est déjà utilisé. Choisissez un autre nom.');
+                    hideLoading();
+                    return;
+                }
+
+                if (eventData.drawCompleted) {
+                    showMessage('Le tirage a déjà été effectué. Vous ne pouvez plus rejoindre.');
+                    hideLoading();
+                    return;
+                }
+
+                const participantId = generateParticipantId();
+                const newParticipant = {
+                    id: participantId,
+                    name: participantName,
+                    isOrganizer: false
+                };
+
+                await updateDoc(doc(db, 'events', eventCode), {
+                    participants: arrayUnion(newParticipant)
+                });
+
+                localStorage.setItem('secretSantaParticipantId', participantId);
+                localStorage.setItem('secretSantaEventCode', eventCode);
+
+                currentParticipant = newParticipant;
+                showParticipantWaitingView(eventCode);
+            } catch (e) {
+                console.error('Error confirming join:', e);
+                showMessage('Erreur lors de l\'inscription');
+            }
+
+            hideLoading();
+        }
+
+        async function performDraw() {
+            if (!currentEvent || !currentParticipant?.isOrganizer) return;
+
+            const eventCode = currentEvent.code;
+            
+            showLoading();
+
+            try {
+                const eventDoc = await getDoc(doc(db, 'events', eventCode));
+                const eventData = eventDoc.data();
+
+                if (eventData.participants.length < 3) {
+                    showMessage('Il faut au moins 3 participants pour le tirage');
+                    hideLoading();
+                    return;
+                }
+
+                // Create derangement
+                const participantNames = eventData.participants.map(p => p.name);
+                let assignments;
+                let attempts = 0;
+                const maxAttempts = 100;
+
+                do {
+                    assignments = createDerangement(participantNames);
+                    attempts++;
+                } while (!isValidDerangement(participantNames, assignments) && attempts < maxAttempts);
+
+                if (!isValidDerangement(participantNames, assignments)) {
+                    showMessage('Erreur lors du tirage, veuillez réessayer');
+                    hideLoading();
+                    return;
+                }
+
+                // Create assignments map
+                const assignmentsMap = {};
+                eventData.participants.forEach((p, i) => {
+                    assignmentsMap[p.id] = assignments[i];
+                });
+
+                await updateDoc(doc(db, 'events', eventCode), {
+                    assignments: assignmentsMap,
+                    drawCompleted: true
+                });
+
+                showMessage('Tirage effectué avec succès !', 'success');
+                
+            } catch (e) {
+                console.error('Error performing draw:', e);
+                showMessage('Erreur lors du tirage');
+            }
+
+            hideLoading();
+        }
+
+        function showOrganizerDashboard(eventCode) {
+            showView('organizer');
+            
+            document.getElementById('display-event-code').textContent = eventCode;
+            document.getElementById('share-link-input').value = getShareLink(eventCode);
+
+            // Set up copy button
+            document.getElementById('copy-link-btn').addEventListener('click', function() {
+                const linkInput = document.getElementById('share-link-input');
+                navigator.clipboard.writeText(linkInput.value).then(() => {
+                    this.textContent = '✓ Copié !';
+                    this.classList.add('copied');
+                    setTimeout(() => {
+                        this.textContent = '📋 Copier';
+                        this.classList.remove('copied');
+                    }, 2000);
+                });
+            });
+
+            // Subscribe to real-time updates
+            subscribeToEvent(eventCode, (eventData) => {
+                currentEvent = eventData;
+                document.getElementById('display-event-name').textContent = eventData.name;
+                
+                updateParticipantsList(
+                    'organizer-participants-list',
+                    'organizer-participant-count',
+                    eventData.participants
+                );
+
+                const drawBtn = document.getElementById('perform-draw-btn');
+                drawBtn.disabled = eventData.participants.length < 3;
+
+                if (eventData.drawCompleted) {
+                    showDrawCompleteView(eventCode, eventData);
+                }
+            });
+        }
+
+        function showParticipantWaitingView(eventCode) {
+            showView('participantWaiting');
+
+            subscribeToEvent(eventCode, (eventData) => {
+                currentEvent = eventData;
+                document.getElementById('waiting-event-name').textContent = eventData.name;
+                
+                updateParticipantsList(
+                    'waiting-participants-list',
+                    'waiting-participant-count',
+                    eventData.participants
+                );
+
+                if (eventData.drawCompleted) {
+                    showAssignmentView(eventCode);
+                }
+            });
+        }
+
+        function showAssignmentView(eventCode) {
+            showView('assignment');
+
+            subscribeToEvent(eventCode, (eventData) => {
+                currentEvent = eventData;
+                document.getElementById('assignment-event-name').textContent = eventData.name;
+                document.getElementById('assignment-participant-name').textContent = currentParticipant.name;
+
+                const assignment = eventData.assignments[currentParticipant.id];
+                
+                const hiddenAssignment = document.getElementById('hidden-assignment');
+                const revealBtn = document.getElementById('reveal-assignment-btn');
+                const assignmentDisplay = document.getElementById('assignment-display');
+
+                function revealAssignment() {
+                    assignmentDisplay.innerHTML = `<span class="receiver-name">${escapeHtml(assignment)}</span>`;
+                    revealBtn.style.display = 'none';
+                }
+
+                hiddenAssignment.onclick = revealAssignment;
+                revealBtn.onclick = revealAssignment;
+            });
+        }
+
+        function showDrawCompleteView(eventCode, eventData) {
+            showView('drawComplete');
+            
+            document.getElementById('complete-event-name').textContent = eventData.name;
+
+            const assignment = eventData.assignments[currentParticipant.id];
+            
+            const hiddenAssignment = document.getElementById('organizer-hidden-assignment');
+            const revealBtn = document.getElementById('organizer-reveal-btn');
+            const assignmentDisplay = document.getElementById('organizer-assignment-display');
+
+            function revealAssignment() {
+                assignmentDisplay.innerHTML = `<span class="receiver-name">${escapeHtml(assignment)}</span>`;
+                revealBtn.style.display = 'none';
+            }
+
+            hiddenAssignment.onclick = revealAssignment;
+            revealBtn.onclick = revealAssignment;
+
+            // Show all participants
+            const listEl = document.getElementById('complete-participants-list');
+            listEl.innerHTML = '';
+            eventData.participants.forEach(p => {
+                const li = document.createElement('li');
+                if (p.id === currentParticipant.id) {
+                    li.classList.add('current-user');
+                }
+                li.innerHTML = `
+                    <span class="participant-name">${escapeHtml(p.name)}</span>
+                    <span class="participant-status ${p.isOrganizer ? 'status-organizer' : 'status-joined'}">
+                        ${p.isOrganizer ? 'Organisateur' : 'Participant'}
+                    </span>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function updateParticipantsList(listId, countId, participants) {
+            const listEl = document.getElementById(listId);
+            const countEl = document.getElementById(countId);
+
+            listEl.innerHTML = '';
+            participants.forEach(p => {
+                const li = document.createElement('li');
+                if (currentParticipant && p.id === currentParticipant.id) {
+                    li.classList.add('current-user');
+                }
+                li.innerHTML = `
+                    <span class="participant-name">${escapeHtml(p.name)}</span>
+                    <span class="participant-status ${p.isOrganizer ? 'status-organizer' : 'status-joined'}">
+                        ${p.isOrganizer ? 'Organisateur' : 'Participant'}
+                    </span>
+                `;
+                listEl.appendChild(li);
+            });
+
+            countEl.textContent = participants.length;
+        }
+
+        function subscribeToEvent(eventCode, callback) {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+
+            unsubscribe = onSnapshot(doc(db, 'events', eventCode), (doc) => {
+                if (doc.exists()) {
+                    callback(doc.data());
+                }
+            });
+        }
+
+        function leaveEvent() {
+            if (unsubscribe) {
+                unsubscribe();
+                unsubscribe = null;
+            }
+            currentEvent = null;
+            currentParticipant = null;
+            localStorage.removeItem('secretSantaEventCode');
+            showView('home');
+        }
+
+        // Initialize app
+        async function init() {
+            // Check URL for event code
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventCodeFromUrl = urlParams.get('event');
+
+            // Check localStorage for saved session
+            const savedEventCode = localStorage.getItem('secretSantaEventCode');
+            const savedParticipantId = localStorage.getItem('secretSantaParticipantId');
+
+            // Always hide loading and show appropriate view
+            hideLoading();
+
+            if (eventCodeFromUrl) {
+                await joinEvent(eventCodeFromUrl);
+            } else if (savedEventCode && savedParticipantId) {
+                await joinEvent(savedEventCode);
+            } else {
+                showView('home');
+            }
+        }
+
+        // Set up event listeners
+        document.getElementById('create-event-btn').addEventListener('click', () => showView('create'));
+        document.getElementById('join-event-btn').addEventListener('click', () => joinEvent());
+        document.getElementById('confirm-create-btn').addEventListener('click', createEvent);
+        document.getElementById('confirm-join-btn').addEventListener('click', confirmJoin);
+        document.getElementById('perform-draw-btn').addEventListener('click', performDraw);
+        
+        document.getElementById('back-to-home').addEventListener('click', () => showView('home'));
+        document.getElementById('back-from-join').addEventListener('click', () => showView('home'));
+        document.getElementById('leave-organizer').addEventListener('click', leaveEvent);
+        document.getElementById('leave-waiting').addEventListener('click', leaveEvent);
+        document.getElementById('back-from-assignment').addEventListener('click', leaveEvent);
+        document.getElementById('back-from-complete').addEventListener('click', leaveEvent);
+
+        // Handle Enter key on inputs
+        document.getElementById('join-code-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinEvent();
+        });
+        document.getElementById('event-name-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('organizer-name-input').focus();
+        });
+        document.getElementById('organizer-name-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') createEvent();
+        });
+        document.getElementById('participant-name-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') confirmJoin();
+        });
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
