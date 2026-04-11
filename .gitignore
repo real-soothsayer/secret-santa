@@ -1,0 +1,10 @@
+# Generated Excel output
+Road_Trip_France_5_Jours.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
