@@ -1,0 +1,22 @@
+# Generated output
+Road_Trip_Vendeur.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Image cache (generated at runtime)
+/tmp/roadtrip_img_cache/
+
+# OS
+.DS_Store
+Thumbs.db
